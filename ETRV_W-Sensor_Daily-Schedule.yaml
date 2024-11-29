@@ -1,0 +1,57 @@
+blueprint:
+  name: 'Daily Heating Schedule with Window Sensor'
+  description: 'Zapněte vytápění v konkrétní den a čas, pokud je okno zavřené'
+  domain: automation
+  input:
+    heating_entity:
+      name: Heating Entity
+      selector:
+        entity:
+          domain: climate
+    window_sensor:
+      name: Window Sensor
+      selector:
+        entity:
+          domain: binary_sensor
+    day_of_week:
+      name: Day of the Week
+      selector:
+        select:
+          options:
+            - mon
+            - tue
+            - wed
+            - thu
+            - fri
+            - sat
+            - sun
+    time_to_start:
+      name: Time to Start
+      selector:
+        time:
+    target_temperature:
+      name: Target Temperature
+      selector:
+        number:
+          min: 10
+          max: 30
+          step: 0.5
+trigger:
+  - platform: time
+    at: !input time_to_start
+condition:
+  - condition: time
+    weekday: !input day_of_week
+  - condition: state
+    entity_id: !input window_sensor
+    state: 'off'
+action:
+  - service: climate.set_temperature
+    target:
+      entity_id: !input heating_entity
+    data:
+      temperature: !input target_temperature
+  - service: climate.turn_on
+    target:
+      entity_id: !input heating_entity
+mode: single
