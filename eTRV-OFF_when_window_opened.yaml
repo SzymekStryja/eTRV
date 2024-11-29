@@ -14,9 +14,6 @@ blueprint:
         entity:
           domain: binary_sensor
 
-variables:
-  previous_temperature: "{{ state_attr(!input.heating_entity, 'temperature') }}"
-
 trigger:
   - platform: state
     entity_id: !input window_sensor
@@ -46,7 +43,7 @@ action:
             target:
               entity_id: !input heating_entity
             data:
-              temperature: "{{ previous_temperature }}"
+              temperature: "{{ state_attr(!input.heating_entity, 'temperature') }}"
           - service: climate.set_hvac_mode
             target:
               entity_id: !input heating_entity
