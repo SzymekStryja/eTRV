@@ -36,9 +36,24 @@ blueprint:
           min: 10
           max: 30
           step: 0.5
+
 trigger:
   - platform: time
     at: !input time_to_start
+
 condition:
-  - condition: template
-    value
+  - condition: and
+    conditions:
+      - condition: state
+        entity_id: !input window_sensor
+        state: 'off'  # Assuming 'off' means the window is closed
+      - condition: template
+        value_template: >
+          {{ now().strftime('%a').lower() == !input day_of_week }}
+
+action:
+  - service: climate.set_temperature
+    target:
+      entity_id: !input heating_entity
+    data:
+      temperature: !input target_temperature
