@@ -40,8 +40,8 @@ trigger:
   - platform: time
     at: !input time_to_start
 condition:
-  - condition: time
-    weekday: !input day_of_week
+  - condition: template
+    value_template: "{{ now().strftime('%a').lower() == !input 'day_of_week' }}"
   - condition: state
     entity_id: !input window_sensor
     state: 'off'
