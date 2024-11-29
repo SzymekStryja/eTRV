@@ -36,22 +36,22 @@ blueprint:
           min: 10
           max: 30
           step: 0.5
-  trigger:
-    platform: time
-    at: !input 'time_to_start'
-  condition:
-    - condition: time
-      weekday: !input 'day_of_week'
-    - condition: state
-      entity_id: !input 'window_sensor'
-      state: 'off'
-  action:
-    - service: climate.set_temperature
-      target:
-        entity_id: !input 'heating_entity'
-      data:
-        temperature: !input 'target_temperature'
-    - service: climate.turn_on
-      target:
-        entity_id: !input 'heating_entity'
-  mode: single
+trigger:
+  - platform: time
+    at: !input time_to_start
+condition:
+  - condition: time
+    weekday: !input day_of_week
+  - condition: state
+    entity_id: !input window_sensor
+    state: 'off'
+action:
+  - service: climate.set_temperature
+    target:
+      entity_id: !input heating_entity
+    data:
+      temperature: !input target_temperature
+  - service: climate.turn_on
+    target:
+      entity_id: !input heating_entity
+mode: single
