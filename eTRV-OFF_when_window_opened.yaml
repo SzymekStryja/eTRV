@@ -1,0 +1,54 @@
+blueprint:
+  name: 'Turn Off Heating When Window Opens and Restore When Closes'
+  description: 'Turn off heating if the window is opened and restore to previous temperature when closed'
+  domain: automation
+  input:
+    heating_entity:
+      name: Heating Entity
+      selector:
+        entity:
+          domain: climate
+    window_sensor:
+      name: Window Sensor
+      selector:
+        entity:
+          domain: binary_sensor
+
+variables:
+  previous_temperature: "{{ state_attr(!input.heating_entity, 'temperature') }}"
+
+trigger:
+  - platform: state
+    entity_id: !input window_sensor
+    to: 'on'  # Window opened
+  - platform: state
+    entity_id: !input window_sensor
+    to: 'off'  # Window closed
+
+action:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: !input window_sensor
+            state: 'on'  # If window is opened
+        sequence:
+          - service: climate.set_hvac_mode
+            target:
+              entity_id: !input heating_entity
+            data:
+              hvac_mode: 'off'
+      - conditions:
+          - condition: state
+            entity_id: !input window_sensor
+            state: 'off'  # If window is closed
+        sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input heating_entity
+            data:
+              temperature: "{{ previous_temperature }}"
+          - service: climate.set_hvac_mode
+            target:
+              entity_id: !input heating_entity
+            data:
+              hvac_mode: 'heat'  # Assuming you want to turn it back to heating mode
