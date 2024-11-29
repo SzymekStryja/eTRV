@@ -53,8 +53,7 @@ action:
             target:
               entity_id: !input heating_entity
             data:
-              temperature: >
-                {{ states(!input.previous_temperature_input) | float }}
+              temperature: "{{ states(!input.previous_temperature_input) | float }}"
           - service: climate.set_hvac_mode
             target:
               entity_id: !input heating_entity
