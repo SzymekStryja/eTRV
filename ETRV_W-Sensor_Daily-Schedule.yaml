@@ -1,10 +1,10 @@
 blueprint:
-  name: 'Daily Heating Schedule with Window Sensor'
-  description: 'Zapněte vytápění v konkrétní den a čas, pokud je okno zavřené'
+  name: 'Heating Schedule with Window Sensor and External Thermometer'
+  description: 'Zapne vytápění v konkrétní dny a čas, pokud je okno zavřené a využívá externí teploměr pro měření teploty'
   domain: automation
   input:
     heating_entity:
-      name: Heating Entity
+      name: Heating Thermostat
       selector:
         entity:
           domain: climate
@@ -13,18 +13,25 @@ blueprint:
       selector:
         entity:
           domain: binary_sensor
-    day_of_week:
-      name: Day of the Week
+    external_thermometer:
+      name: External Thermometer
+      selector:
+        entity:
+          domain: sensor
+          device_class: temperature
+    days_of_week:
+      name: Days of the Week
       selector:
         select:
+          mode: list
           options:
-            - mon
-            - tue
-            - wed
-            - thu
-            - fri
-            - sat
-            - sun
+            - monday
+            - tuesday
+            - wednesday
+            - thursday
+            - friday
+            - saturday
+            - sunday
     time_to_start:
       name: Time to Start
       selector:
@@ -36,24 +43,25 @@ blueprint:
           min: 10
           max: 30
           step: 0.5
-
 trigger:
   - platform: time
     at: !input time_to_start
-
 condition:
-  - condition: and
-    conditions:
-      - condition: state
-        entity_id: !input window_sensor
-        state: 'off'  # Assuming 'off' means the window is closed
-      - condition: template
-        value_template: >
-          {{ now().strftime('%a').lower() == !input day_of_week }}
-
+  - condition: template
+    value_template: >
+      {{ now().strftime('%A').lower() in !input 'days_of_week' and is_state(!input 'window_sensor', 'off') }}
 action:
   - service: climate.set_temperature
     target:
       entity_id: !input heating_entity
     data:
       temperature: !input target_temperature
+  - wait_for_trigger:
+      - platform: state
+        entity_id: !input window_sensor
+        to: 'off'
+    timeout: '1:00:00'
+  - service: climate.turn_on
+    target:
+      entity_id: !input heating_entity
+mode: single
