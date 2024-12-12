@@ -1,6 +1,6 @@
 blueprint:
-  name: 'Heating Schedule with Window Sensor and External Thermometer'
-  description: 'Zapne vytápění v konkrétní dny a čas, pokud je okno zavřené a využívá externí teploměr pro měření teploty'
+  name: 'Heating Schedule with Window Sensor and Optional External Thermometer'
+  description: 'Zapne vytápění v konkrétní dny a čas, pokud je okno zavřené a volitelně využívá externí teploměr pro měření teploty'
   domain: automation
   input:
     heating_entity:
@@ -14,15 +14,17 @@ blueprint:
         entity:
           domain: binary_sensor
     external_thermometer:
-      name: External Thermometer
+      name: External Thermometer (Optional)
       selector:
         entity:
           domain: sensor
           device_class: temperature
+      default: ''
     days_of_week:
       name: Days of the Week
       selector:
-        entity:
+        select:
+          mode: list
           multiple: true
           options:
             - monday
@@ -49,13 +51,29 @@ trigger:
 condition:
   - condition: template
     value_template: >
-      {{ now().strftime('%A').lower() in !input days_of_week | map('lower') and is_state(!input window_sensor, 'off') }}
+      {{ now().strftime('%A').lower() in (input.days_of_week | map('lower')) and is_state(input.window_sensor, 'off') }}
 action:
-  - service: climate.set_temperature
-    target:
-      entity_id: !input heating_entity
-    data:
-      temperature: !input target_temperature
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: >
+              {{ !input.external_thermometer }}
+        sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input heating_entity
+            data:
+              temperature: !input target_temperature
+      - conditions:
+          - condition: template
+            value_template: >
+              {{ input.external_thermometer }}
+        sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input heating_entity
+            data:
+              temperature: !input target_temperature
   - wait_for_trigger:
       - platform: state
         entity_id: !input window_sensor
