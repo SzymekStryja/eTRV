@@ -15,44 +15,47 @@ blueprint:
       selector:
         entity:
           domain: climate
+    previous_temp_storage:
+      name: Previous Temperature Storage
+      description: Input_number entity to store the previous temperature.
+      selector:
+        entity:
+          domain: input_number
 
 trigger:
   - platform: state
-    entity_id: !input 'window_sensor' 
+    entity_id: !input 'window_sensor'
     to: 'on'
   - platform: state
-    entity_id: !input 'window_sensor' 
+    entity_id: !input 'window_sensor'
     to: 'off'
 
 action:
   - choose:
     - conditions:
       - condition: state
-        entity_id: !input 'window_sensor' 
+        entity_id: !input 'window_sensor'
         state: 'on'
       sequence:
-      - variables:
-          previous_temperature: "{{ state_attr(states.get(!input.heating_entity), 'temperature') }}"
       - service: climate.set_hvac_mode
         target:
           entity_id: !input 'heating_entity'
         data:
           hvac_mode: 'off' 
+      - service: input_number.set_value
+        target:
+          entity_id: !input 'previous_temp_storage'
+        data:
+          value: "{{ state_attr(!input.heating_entity, 'temperature') }}" 
     - conditions:
       - condition: state
-        entity_id: !input 'window_sensor' 
+        entity_id: !input 'window_sensor'
         state: 'off'
       sequence:
       - service: climate.set_temperature
         target:
           entity_id: !input 'heating_entity'
         data:
-          temperature: >
-            {% set prev_temp = state_attr(states.get(!input.heating_entity), 'temperature') %}
-            {% if prev_temp is not none and prev_temp | float >= 5.0 and prev_temp | float <= 35.0 %}
-              {{ prev_temp | float }}
-            {% else %}
-              20.0  # Default temperature if previous is invalid
-            {% endif %}
+          temperature: "{{ states.get(!input.previous_temp_storage) }}"
 
 mode: single
