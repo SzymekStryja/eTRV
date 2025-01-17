@@ -24,38 +24,36 @@ blueprint:
 
 trigger:
   - platform: state
-    entity_id: !input 'window_sensor'
+    entity_id: !input window_sensor
     to: 'on'
   - platform: state
-    entity_id: !input 'window_sensor'
+    entity_id: !input window_sensor
     to: 'off'
 
 action:
   - choose:
       - conditions:
           - condition: state
-            entity_id: !input 'window_sensor'
+            entity_id: !input window_sensor
             state: 'on'
         sequence:
+          - service: script.set_previous_temperature
+            data:
+              heating_entity: !input heating_entity
+              previous_temp_storage: !input previous_temp_storage
           - service: climate.set_hvac_mode
             target:
-              entity_id: !input 'heating_entity'
+              entity_id: !input heating_entity
             data:
               hvac_mode: 'off'
-          - service: input_number.set_value
-            target:
-              entity_id: !input 'previous_temp_storage'
-            data:
-              value: "{{ state_attr('climate.' + (!input 'heating_entity'), 'temperature') }}"
       - conditions:
           - condition: state
-            entity_id: !input 'window_sensor'
+            entity_id: !input window_sensor
             state: 'off'
         sequence:
-          - service: climate.set_temperature
-            target:
-              entity_id: !input 'heating_entity'
+          - service: script.restore_temperature
             data:
-              temperature: "{{ states('input_number.' + (!input 'previous_temp_storage')) }}"
+              heating_entity: !input heating_entity
+              previous_temp_storage: !input previous_temp_storage
 
 mode: single
