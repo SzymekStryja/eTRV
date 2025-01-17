@@ -34,11 +34,11 @@ action:
             entity_id: !input window_sensor
             state: 'on'
         sequence:
-          - service: climate.set_temperature
+          - service: climate.set_hvac_mode
             target:
               entity_id: !input heating_entity
             data:
-              temperature: 0  # Set to a low temperature or eco mode
+              hvac_mode: 'off'  # Turn off the heating system
       - conditions:
           - condition: state
             entity_id: !input window_sensor
@@ -48,6 +48,6 @@ action:
             target:
               entity_id: !input heating_entity
             data:
-              temperature: "{{ previous_temperature }}"
+              temperature: "{{ previous_temperature | float }}"  # Restore previous temperature
 
 mode: single
