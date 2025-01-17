@@ -46,7 +46,7 @@ action:
             target:
               entity_id: !input 'previous_temp_storage'
             data:
-              value: "{{ state_attr(!input 'heating_entity', 'temperature') }}"
+              value: "{{ state_attr(!input.heating_entity, 'temperature') }}"
       - conditions:
           - condition: state
             entity_id: !input 'window_sensor'
@@ -56,5 +56,5 @@ action:
             target:
               entity_id: !input 'heating_entity'
             data:
-              temperature: "{{ states(!input 'previous_temp_storage') }}"
+              temperature: "{{ states(!input.previous_temp_storage) }}"
 mode: single
