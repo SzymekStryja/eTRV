@@ -24,9 +24,6 @@ trigger:
     entity_id: !input window_sensor
     to: 'off'
 
-variables:
-  previous_temperature: "{{ state_attr(trigger.entity_id, 'temperature') }}"
-
 action:
   - choose:
       - conditions:
@@ -34,6 +31,8 @@ action:
             entity_id: !input window_sensor
             state: 'on'
         sequence:
+          - variables:
+              previous_temperature: "{{ state_attr(!input.heating_entity, 'temperature') }}"
           - service: climate.set_hvac_mode
             target:
               entity_id: !input heating_entity
@@ -48,6 +47,11 @@ action:
             target:
               entity_id: !input heating_entity
             data:
-              temperature: "{{ previous_temperature | float }}"  # Restore previous temperature
+              temperature: >
+                {% if previous_temperature is not none and previous_temperature | float >= 5.0 and previous_temperature | float <= 35.0 %}
+                  {{ previous_temperature | float }}
+                {% else %}
+                  20.0  # Default temperature if previous is invalid
+                {% endif %}
 
 mode: single
