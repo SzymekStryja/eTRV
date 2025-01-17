@@ -1,29 +1,53 @@
-automation:
-  - alias: "Vypnout topení při otevřeném okně"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.okno_v_obývacím_pokoji
-        to: 'on'
-    action:
-      - service: climate.set_temperature
-        target:
-          entity_id: climate.termostat_v_obývacím_pokoji
-        data:
-          temperature: 16
-      - service: input_number.set_value
-        target:
-          entity_id: input_number.puvodni_teplota
-        data:
-          value: "{{ state_attr('climate.termostat_v_obývacím_pokoji', 'temperature') }}"
+blueprint:
+  name: Window Open/Close Heating Control
+  description: Turns off heating when a window is opened and restores the previous temperature when closed.
+  domain: automation
+  input:
+    window_sensor:
+      name: Window Sensor
+      description: The binary sensor that detects if the window is open or closed.
+      selector:
+        entity:
+          domain: binary_sensor
+    heating_entity:
+      name: Heating Entity
+      description: The climate entity that controls the heating.
+      selector:
+        entity:
+          domain: climate
 
-  - alias: "Nastavit původní teplotu po zavření okna"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.okno_v_obývacím_pokoji
-        to: 'off'
-    action:
-      - service: climate.set_temperature
-        target:
-          entity_id: climate.termostat_v_obývacím_pokoji
-        data:
-          temperature: "{{ states('input_number.puvodni_teplota') }}"
+trigger:
+  - platform: state
+    entity_id: !input window_sensor
+    to: 'on'
+  - platform: state
+    entity_id: !input window_sensor
+    to: 'off'
+
+variables:
+  previous_temperature: "{{ state_attr(trigger.entity_id, 'temperature') }}"
+
+action:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: !input window_sensor
+            state: 'on'
+        sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input heating_entity
+            data:
+              temperature: 0  # Set to a low temperature or eco mode
+      - conditions:
+          - condition: state
+            entity_id: !input window_sensor
+            state: 'off'
+        sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input heating_entity
+            data:
+              temperature: "{{ previous_temperature }}"
+
+mode: single
