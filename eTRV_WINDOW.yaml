@@ -48,8 +48,9 @@ action:
               entity_id: !input heating_entity
             data:
               temperature: >
-                {% if previous_temperature is not none and previous_temperature | float >= 5.0 and previous_temperature | float <= 35.0 %}
-                  {{ previous_temperature | float }}
+                {% set prev_temp = state_attr(!input.heating_entity, 'temperature') %}
+                {% if prev_temp is not none and prev_temp | float >= 5.0 and prev_temp | float <= 35.0 %}
+                  {{ prev_temp | float }}
                 {% else %}
                   20.0  # Default temperature if previous is invalid
                 {% endif %}
