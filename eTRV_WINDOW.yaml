@@ -33,29 +33,28 @@ trigger:
 action:
   - choose:
     - conditions:
-      - condition: state
-        entity_id: !input 'window_sensor'
-        state: 'on'
+        - condition: state
+          entity_id: !input 'window_sensor'
+          state: 'on'
       sequence:
-      - service: climate.set_hvac_mode
-        target:
-          entity_id: !input 'heating_entity'
-        data:
-          hvac_mode: 'off' 
-      - service: input_number.set_value
-        target:
-          entity_id: !input 'previous_temp_storage'
-        data:
-          value: "{{ state_attr('climate.' + !input 'heating_entity', 'temperature') }}"
+        - service: climate.set_hvac_mode
+          target:
+            entity_id: !input 'heating_entity'
+          data:
+            hvac_mode: 'off' 
+        - service: input_number.set_value
+          target:
+            entity_id: !input 'previous_temp_storage'
+          data:
+            value: "{{ state_attr('climate.' + (!input 'heating_entity'), 'temperature') }}"
     - conditions:
-      - condition: state
-        entity_id: !input 'window_sensor'
-        state: 'off'
+        - condition: state
+          entity_id: !input 'window_sensor'
+          state: 'off'
       sequence:
-      - service: climate.set_temperature
-        target:
-          entity_id: !input 'heating_entity'
-        data:
-          temperature: "{{ states('input_number.' + !input 'previous_temp_storage') }}"
-
+        - service: climate.set_temperature
+          target:
+            entity_id: !input 'heating_entity'
+          data:
+            temperature: "{{ states('input_number.' + (!input 'previous_temp_storage')) }}"
 mode: single
