@@ -18,41 +18,41 @@ blueprint:
 
 trigger:
   - platform: state
-    entity_id: !input window_sensor
+    entity_id: !input 'window_sensor' 
     to: 'on'
   - platform: state
-    entity_id: !input window_sensor
+    entity_id: !input 'window_sensor' 
     to: 'off'
 
 action:
   - choose:
-      - conditions:
-          - condition: state
-            entity_id: !input window_sensor
-            state: 'on'
-        sequence:
-          - variables:
-              previous_temperature: "{{ state_attr(!input.heating_entity, 'temperature') }}"
-          - service: climate.set_hvac_mode
-            target:
-              entity_id: !input heating_entity
-            data:
-              hvac_mode: 'off'  # Turn off the heating system
-      - conditions:
-          - condition: state
-            entity_id: !input window_sensor
-            state: 'off'
-        sequence:
-          - service: climate.set_temperature
-            target:
-              entity_id: !input heating_entity
-            data:
-              temperature: >
-                {% set prev_temp = state_attr(!input.heating_entity, 'temperature') %}
-                {% if prev_temp is not none and prev_temp | float >= 5.0 and prev_temp | float <= 35.0 %}
-                  {{ prev_temp | float }}
-                {% else %}
-                  20.0  # Default temperature if previous is invalid
-                {% endif %}
+    - conditions:
+      - condition: state
+        entity_id: !input 'window_sensor' 
+        state: 'on'
+      sequence:
+      - variables:
+          previous_temperature: "{{ state_attr(states.get(!input.heating_entity), 'temperature') }}"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: !input 'heating_entity'
+        data:
+          hvac_mode: 'off' 
+    - conditions:
+      - condition: state
+        entity_id: !input 'window_sensor' 
+        state: 'off'
+      sequence:
+      - service: climate.set_temperature
+        target:
+          entity_id: !input 'heating_entity'
+        data:
+          temperature: >
+            {% set prev_temp = state_attr(states.get(!input.heating_entity), 'temperature') %}
+            {% if prev_temp is not none and prev_temp | float >= 5.0 and prev_temp | float <= 35.0 %}
+              {{ prev_temp | float }}
+            {% else %}
+              20.0  # Default temperature if previous is invalid
+            {% endif %}
 
 mode: single
