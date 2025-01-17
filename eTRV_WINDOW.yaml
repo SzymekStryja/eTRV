@@ -1,10 +1,9 @@
 automation:
-  - alias: Vypnout topení při otevření okna
+  - alias: "Vypnout topení při otevřeném okně"
     trigger:
       - platform: state
         entity_id: binary_sensor.okno_v_obývacím_pokoji
         to: 'on'
-    condition: []  # Zde můžeš přidat podmínky
     action:
       - service: climate.set_temperature
         target:
@@ -17,12 +16,11 @@ automation:
         data:
           value: "{{ state_attr('climate.termostat_v_obývacím_pokoji', 'temperature') }}"
 
-  - alias: Nastavit původní teplotu po zavření okna
+  - alias: "Nastavit původní teplotu po zavření okna"
     trigger:
       - platform: state
         entity_id: binary_sensor.okno_v_obývacím_pokoji
         to: 'off'
-    condition: []  # Zde můžeš přidat podmínky
     action:
       - service: climate.set_temperature
         target:
