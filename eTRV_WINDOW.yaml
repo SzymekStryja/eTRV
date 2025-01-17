@@ -42,11 +42,11 @@ action:
           entity_id: !input 'heating_entity'
         data:
           hvac_mode: 'off'
-      - service: input_number.set_value 
+      - service: input_number.set_value
         target:
           entity_id: !input 'previous_temp_storage'
         data:
-          value: "{{ state_attr(!input.heating_entity, 'temperature') | float }}" 
+          value: "{{ state_attr(!input.heating_entity, 'temperature') | float | string }}" 
 
     - conditions:
       - condition: state
