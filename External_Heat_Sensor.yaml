@@ -1,0 +1,33 @@
+blueprint:
+  name: External Temperature Priority 
+  description: Prioritizes external temperature sensor readings for Danfoss Ally ETRV.
+  domain: automation
+  input:
+    external_temperature_sensor:
+      name: External Temperature Sensor
+      description: The Zigbee sensor providing temperature readings.
+      selector:
+        entity:
+          domain: sensor
+    danfoss_switch:
+      name: External Temperature Priority Switch
+      description: The switch entity to prioritize external sensor.
+      selector:
+        entity:
+          domain: switch
+
+trigger:
+  - platform: state
+    entity_id: !input external_temperature_sensor
+
+action:
+  - service: switch.turn_on
+    target:
+      entity_id: !input danfoss_switch
+  - service: climate.set_temperature
+    target:
+      entity_id: !input heating_entity
+    data:
+      temperature: "{{ states(!input external_temperature_sensor) }}"
+
+mode: single
