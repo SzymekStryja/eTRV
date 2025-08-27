@@ -1,0 +1,12 @@
+alias: Vypnout zásuvku při nízkém odběru
+description: Vypne zásuvku pokud je spotřeba menší než 5 W po dobu 5 sekund
+trigger:
+  - platform: numeric_state
+    entity_id: sensor.tvoje_zasuvka_power
+    below: 5
+    for: "00:00:05"   # čeká 5 sekund, aby to nebylo jen krátké kolísání
+action:
+  - service: switch.turn_off
+    target:
+      entity_id: switch.tvoje_zasuvka
+mode: single
