@@ -1,12 +1,46 @@
-alias: Vypnout PC zásuvku při nízkém odběru
-description: Vypne PC zásuvku pokud je spotřeba menší než 9 W po dobu 5 sekund
+blueprint:
+  name: Vypnout zásuvku při nízkém odběru
+  description: Vypne zásuvku, pokud spotřeba klesne pod nastavený limit po určitou dobu.
+  domain: automation
+  input:
+    power_sensor:
+      name: Senzor výkonu
+      description: Vyber senzor výkonu (W) ze zásuvky
+      selector:
+        entity:
+          domain: sensor
+    switch_target:
+      name: Zásuvka
+      description: Vyber chytrou zásuvku, kterou chceš vypnout
+      selector:
+        entity:
+          domain: switch
+    power_threshold:
+      name: Hranice výkonu (W)
+      description: Pod touto hodnotou (W) se zásuvka vypne
+      default: 9
+      selector:
+        number:
+          min: 1
+          max: 1000
+          unit_of_measurement: W
+          mode: box
+    duration:
+      name: Doba pod hranicí
+      description: Jak dlouho musí být spotřeba pod hranicí, aby se zásuvka vypla
+      default: "00:00:05"
+      selector:
+        duration: {}
+
 trigger:
   - platform: numeric_state
-    entity_id: sensor.pc_power_switch_vykon
-    below: 9
-    for: "00:00:05"
+    entity_id: !input power_sensor
+    below: !input power_threshold
+    for: !input duration
+
 action:
   - service: switch.turn_off
     target:
-      entity_id: switch.pc_power_switch
+      entity_id: !input switch_target
+
 mode: single
