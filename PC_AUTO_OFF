@@ -1,4 +1,4 @@
-alias: Vypnout zásuvku při nízkém odběru
+alias: Vypnout zásuvku
 description: Vypne zásuvku pokud je spotřeba menší než 5 W po dobu 5 sekund
 trigger:
   - platform: numeric_state
