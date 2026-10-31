@@ -48,7 +48,7 @@ action:
             target:
               entity_id: !input previous_temp_storage
             data:
-              value: "{{ state_attr(!input heating_entity, 'temperature') | float(20) }}"
+              value: "{{ state_attr(states(!input heating_entity), 'temperature') | float(20) }}"
           - service: climate.set_hvac_mode
             target:
               entity_id: !input heating_entity
@@ -68,6 +68,6 @@ action:
             target:
               entity_id: !input heating_entity
             data:
-              temperature: "{{ states(!input previous_temp_storage) | float(20) }}"
+              temperature: "{{ states(states(!input previous_temp_storage)) | float(20) }}"
 
 mode: single
