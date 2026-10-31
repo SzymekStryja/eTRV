@@ -48,21 +48,26 @@ action:
             target:
               entity_id: !input previous_temp_storage
             data:
-              value: "{{ state_attr(states( 'climate.termostat' ), 'temperature') | float(20) }}"
+              value: "{{ state_attr(state_attr(!input heating_entity, 'temperature'), 'temperature') | float(20) }}"
           - service: climate.set_hvac_mode
             target:
               entity_id: !input heating_entity
             data:
-              hvac_mode: 'heat'
+              hvac_mode: 'off'
       - conditions:
           - condition: state
             entity_id: !input window_sensor
             state: 'off'
         sequence:
+          - service: climate.set_hvac_mode
+            target:
+              entity_id: !input heating_entity
+            data:
+              hvac_mode: 'heat'
           - service: climate.set_temperature
             target:
               entity_id: !input heating_entity
             data:
-              temperature: "{{ states(states( 'input_number.previous_temperature' )) | float(20) }}"
+              temperature: 20
 
 mode: single
