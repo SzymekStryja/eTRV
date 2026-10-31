@@ -44,12 +44,11 @@ action:
             entity_id: !input window_sensor
             state: 'on'
         sequence:
-          # Bezpečné uložení teploty s ošetřením na float
           - service: input_number.set_value
             target:
               entity_id: !input previous_temp_storage
             data:
-              value: "{{ state_attr(states( !input heating_entity ), 'temperature') | float(20) }}"
+              value: "{{ state_attr(!input heating_entity, 'temperature') | float(20) }}"
           - service: climate.set_hvac_mode
             target:
               entity_id: !input heating_entity
@@ -65,11 +64,10 @@ action:
               entity_id: !input heating_entity
             data:
               hvac_mode: 'heat'
-          # Obnovení teploty z input_number (bezpečně převedeno na float)
           - service: climate.set_temperature
             target:
               entity_id: !input heating_entity
             data:
-              temperature: "{{ states( !input previous_temp_storage ) | float(20) }}"
+              temperature: "{{ states(!input previous_temp_storage) | float(20) }}"
 
 mode: single
